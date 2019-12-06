@@ -1,12 +1,12 @@
 from spellchecker import SpellChecker
 import html2text    
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException        
+
 import sys
 import requests
 import re
 from bs4 import BeautifulSoup, element
-
-# start_urls = ['https://en.wikipedia.org/wiki/Commonly_misspelled_English_words']
-# start_urls = ['https://www.cbssports.com/mlb/news/mlb-hot-stove-astros-trade-jake-marisnick-to-the-mets-in-exchange-for-two-prospects/']
 
 class MisspellFinder():
 
@@ -36,15 +36,32 @@ class MisspellFinder():
             x.append(word)
         return x
         
-    def __getSuggestion(self, word):
+    # def __getSuggestion(self, word):
+    #     gSearchPage = 'https://www.google.com/search?q=' + word
+    #     r = requests.get(url = gSearchPage) 
+    #     content = r.text
+    #     soup = BeautifulSoup(content, features="lxml")
+    #     results = soup.find_all("b")
+    #     if (len(results) > 0 and results[0] != "About this page"):
+    #         return results[0].text
+    #     else:
+    #         return ""
+
+    def __getSuggestion(self, word, browser):
         gSearchPage = 'https://www.google.com/search?q=' + word
-        r = requests.get(url = gSearchPage) 
-        content = r.text
-        soup = BeautifulSoup(content, features="lxml")
-        results = soup.find_all("b")
-        if (len(results) > 0):
-            return soup.find_all("b")[0].text
-        else:
+
+        browser.set_window_position(0, 0)
+        browser.set_window_size(1024, 768)
+        browser.get(gSearchPage)
+    
+        try:
+            suggestion = browser.find_elements_by_tag_name("b")
+            if (len(suggestion) > 0):
+                word = suggestion[0].find_element_by_tag_name("i").text
+            else:
+                raise NoSuchElementException
+            return word
+        except NoSuchElementException:
             return ""
 
     def getMisspelledWords(self, url):
@@ -58,13 +75,15 @@ class MisspellFinder():
         potentiallyWrongWords = self.__getPotentiallyWrongWords(preparedWords)
 
         print(potentiallyWrongWords)
+        browser = webdriver.Firefox()
 
         for word in potentiallyWrongWords:
-            suggestion = self.__getSuggestion(word)
+            suggestion = self.__getSuggestion(word,browser)
             suggestionConcat = suggestion.replace(" ", "")
-            suggestionWithS = suggestion + "'s"
+            suggestionWithS = suggestion[:-2] + "'s"
             if (suggestion != "" and word != suggestionConcat and word != suggestionWithS):
                 misspelled[word] = suggestion       
-                # fo.write(word + " should be: " + suggestion + "\n")
+
+        browser.close()
         return misspelled
 

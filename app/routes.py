@@ -13,25 +13,10 @@ client = dbClient(config)
 @app.route('/')
 @app.route('/home')
 def index():
-    # misspelledWordsDict = findMisspellingsForTopPages()
-
-    query = "SELECT Website.link, Suggestions.word, Suggestions.suggestion from Suggestions inner join Website on Website.id = Suggestions.relatedSite;"
+    query = "SELECT DISTINCT Website.link, Suggestions.word, Suggestions.suggestion from Suggestions inner join Website on Website.id = Suggestions.relatedSite;"
 
     misspelledWords = client.run_query(query)
 
-    misspelledWordsDict = {}
-    tmplist = []
-    # for words in misspelledWords:
-    #     x = words[0]
-    #     if x not in misspelledWordsDict:
-    #         print("inserting " + str(words[1:]) + " into " + x)
-    #         misspelledWordsDict[x] = tmplist
-    #         misspelledWordsDict[x].append(list(words[1:]))
-    #     else:
-    #         print("fail: inserting " + str(words[1:]) + " into " + x)
-    #         misspelledWordsDict[x].append(list(words[1:]))
-    
     print(misspelledWords)
-    print(misspelledWordsDict)
             
     return render_template("index.html", misspelled=misspelledWords)

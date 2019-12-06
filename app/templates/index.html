@@ -18,13 +18,12 @@
                     <h2> Potentially misspelled words:</h2>
                     <table>
 
-
                         {% for words in misspelled %}
-<tr>
+                            <tr>
                             {% for word in words %}
                                 <td>{{ word }}</td>
-                                {% endfor %}
-                    </tr>
+                            {% endfor %}
+                            </tr>
 
                         {% endfor %}
                     
